@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>日報作成ツール</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Shippori+Mincho:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#f5f3ee;font-family:'Noto Sans JP','Hiragino Sans',sans-serif;}
+    .wrap{max-width:740px;margin:0 auto;padding:32px 16px 80px;}
+    .hdr{text-align:center;margin-bottom:28px;}
+    .hdr-t{font-family:'Shippori Mincho',serif;font-size:24px;font-weight:600;color:#1a1410;letter-spacing:.12em;}
+    .hdr-s{font-size:11px;color:#8a8070;letter-spacing:.2em;margin-top:5px;text-transform:uppercase;}
+    .tabs{display:flex;border:1px solid #d8d3cb;border-radius:2px;overflow:hidden;margin-bottom:20px;}
+    .tb{flex:1;padding:11px;font-size:13px;font-family:inherit;background:#faf9f7;border:none;cursor:pointer;color:#8a8070;letter-spacing:.06em;transition:all .15s;}
+    .tb.on{background:#1a1410;color:#f5f3ee;}
+    .tb:not(.on):hover{background:#f0ece6;color:#3a2e28;}
+    .card{background:#fff;border-radius:2px;border:1px solid #e2ddd5;padding:22px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+    .sl{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#8a8070;font-weight:600;margin-bottom:12px;border-bottom:1px solid #f0ece6;padding-bottom:8px;}
+    .row{display:flex;gap:14px;flex-wrap:wrap;}
+    .field{display:flex;flex-direction:column;gap:5px;flex:1;min-width:120px;}
+    .field label{font-size:12px;color:#5a5248;letter-spacing:.06em;font-weight:500;}
+    input[type=text],input[type=date],input[type=number]{border:1px solid #d8d3cb;border-radius:2px;padding:8px 11px;font-size:14px;font-family:inherit;color:#1a1410;background:#faf9f7;outline:none;transition:border-color .15s;width:100%;}
+    input:focus{border-color:#8b7355;background:#fff;}
+    textarea{border:1px solid #d8d3cb;border-radius:2px;padding:10px 12px;font-size:13px;font-family:inherit;color:#1a1410;background:#faf9f7;outline:none;transition:border-color .15s;width:100%;resize:vertical;line-height:1.7;}
+    textarea:focus{border-color:#8b7355;background:#fff;}
+    .tb-block{border:1px solid #e8e3db;border-radius:2px;padding:14px;margin-bottom:10px;background:#faf9f7;position:relative;}
+    .tb-block.fx{border-color:#c8b89a;background:#fdf8f3;}
+    .tb-num{position:absolute;top:12px;left:11px;font-size:10px;color:#b0a898;letter-spacing:.08em;}
+    .fx-badge{position:absolute;top:10px;left:11px;font-size:9px;background:#8b7355;color:#fff;padding:2px 6px;border-radius:1px;letter-spacing:.1em;}
+    .tb-row{display:flex;gap:8px;align-items:center;margin-bottom:9px;padding-left:30px;}
+    .tn{flex:1;border:1px solid #d8d3cb;border-radius:2px;padding:7px 10px;font-size:13px;font-family:inherit;color:#1a1410;background:#fff;outline:none;transition:border-color .15s;}
+    .tn:focus{border-color:#8b7355;}
+    .th{width:68px;border:1px solid #d8d3cb;border-radius:2px;padding:7px 8px;font-size:13px;font-family:inherit;color:#1a1410;background:#fff;outline:none;text-align:right;}
+    .th:focus{border-color:#8b7355;}
+    .hu{font-size:12px;color:#8a8070;white-space:nowrap;}
+    .sr{display:flex;align-items:center;gap:6px;margin-bottom:5px;padding-left:30px;}
+    .sp{color:#8b7355;font-size:13px;}
+    .si{flex:1;border:1px solid #e2ddd5;border-radius:2px;padding:5px 9px;font-size:12px;font-family:inherit;color:#2a2420;background:#fff;outline:none;}
+    .si:focus{border-color:#8b7355;}
+    .bx{background:none;border:none;cursor:pointer;padding:3px 5px;color:#c0b8ae;font-size:14px;border-radius:2px;line-height:1;flex-shrink:0;}
+    .bx:hover{color:#c0392b;background:#fff0ee;}
+    .bas{background:none;border:1px dashed #d8d3cb;border-radius:2px;padding:4px 10px;font-size:11px;color:#8a8070;cursor:pointer;transition:all .15s;font-family:inherit;letter-spacing:.05em;margin-top:2px;}
+    .bas:hover{border-color:#8b7355;color:#8b7355;background:#fdf8f3;}
+    .del{position:absolute;top:9px;right:9px;background:none;border:none;cursor:pointer;color:#c8c3bb;font-size:15px;padding:3px;border-radius:2px;}
+    .del:hover{color:#c0392b;}
+    .bat{width:100%;background:none;border:1px dashed #c8c3bb;border-radius:2px;padding:10px;font-size:12px;color:#8a8070;cursor:pointer;transition:all .15s;font-family:inherit;letter-spacing:.1em;margin-top:2px;}
+    .bat:hover{border-color:#8b7355;color:#8b7355;background:#fdf8f3;}
+    .tot{display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:10px 0 0;border-top:1px solid #e8e3db;margin-top:8px;}
+    .tl{font-size:12px;color:#8a8070;}
+    .tv{font-size:16px;color:#1a1410;font-weight:700;}
+    .ft{font-size:11px;color:#8b7355;margin-left:3px;}
+    .bgen{width:100%;background:#1a1410;color:#f5f3ee;border:none;border-radius:2px;padding:14px;font-size:14px;font-family:inherit;cursor:pointer;letter-spacing:.2em;font-weight:500;transition:background .2s;}
+    .bgen:hover{background:#3a2e28;}
+    .oc{background:#1a1410;border-radius:2px;padding:24px;position:relative;margin-top:20px;}
+    .ol{font-size:11px;letter-spacing:.25em;color:#6a6058;text-transform:uppercase;margin-bottom:13px;}
+    .ot{font-family:'Noto Sans JP',monospace;font-size:13px;line-height:1.9;color:#e8e3db;white-space:pre-wrap;word-break:break-word;}
+    .bcp{position:absolute;top:17px;right:17px;background:#2a2420;border:1px solid #3a3430;border-radius:2px;color:#a09888;padding:5px 12px;font-size:11px;cursor:pointer;font-family:inherit;letter-spacing:.1em;transition:all .15s;}
+    .bcp:hover{background:#8b7355;color:#fff;border-color:#8b7355;}
+    .bcp.ok{background:#4a6741;color:#c8e6c9;border-color:#4a6741;}
+    .tia{margin-bottom:10px;}
+    .til{font-size:11px;color:#8a8070;letter-spacing:.1em;margin-bottom:7px;}
+    .tcs{display:flex;flex-wrap:wrap;gap:5px;}
+    .tcb{background:#f0ece6;border:1px solid #d8d3cb;border-radius:2px;padding:5px 11px;font-size:12px;color:#5a5248;cursor:pointer;font-family:inherit;transition:all .15s;}
+    .tcb:hover{background:#8b7355;color:#fff;border-color:#8b7355;}
+    .fi{font-size:11px;color:#8b7355;background:#fdf8f3;border:1px solid #e8d8c0;border-radius:2px;padding:8px 11px;margin-bottom:12px;letter-spacing:.04em;line-height:1.6;}
+    .sep{border:none;border-top:1px dashed #e2ddd5;margin:14px 0;}
+    .tr-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+    .tc{flex:1;background:#f0ece6;border:1px solid #e2ddd5;border-radius:2px;padding:7px 11px;font-size:13px;color:#3a2e28;font-family:inherit;}
+    .tai{display:flex;gap:8px;margin-top:8px;}
+    .tain{flex:1;border:1px solid #d8d3cb;border-radius:2px;padding:8px 11px;font-size:13px;font-family:inherit;color:#1a1410;background:#faf9f7;outline:none;}
+    .tain:focus{border-color:#8b7355;background:#fff;}
+    .btad{background:#1a1410;color:#f5f3ee;border:none;border-radius:2px;padding:8px 16px;font-size:13px;font-family:inherit;cursor:pointer;white-space:nowrap;}
+    .btad:hover{background:#3a2e28;}
+    .bsave{background:#1a1410;color:#f5f3ee;border:none;border-radius:2px;padding:13px 26px;font-size:13px;font-family:inherit;cursor:pointer;letter-spacing:.15em;transition:background .2s;}
+    .bsave:hover{background:#3a2e28;}
+    .sm{font-size:12px;color:#4a6741;margin-left:12px;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const DAYS = ["日","月","火","水","木","金","土"];
+    const uid = () => Date.now() + Math.random();
+    const newTask = () => ({ id: uid(), name: "", hours: "", subItems: [""] });
+    const newFixed = () => ({ id: uid(), name: "", hours: "", subItems: [""] });
+    const newBullet = () => ({ id: uid(), text: "" });
+
+    function load(key, fallback) {
+      try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+    }
+    function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+
+    const formatDate = (ds) => {
+      const d = new Date(ds + "T00:00:00");
+      return `${d.getMonth()+1}/${d.getDate()}(${DAYS[d.getDay()]})`;
+    };
+
+    function BulletList({ items, onChange }) {
+      const update = (id, v) => onChange(items.map(i => i.id === id ? { ...i, text: v } : i));
+      const add = () => onChange([...items, newBullet()]);
+      const remove = (id) => onChange(items.filter(i => i.id !== id));
+      return (
+        <div>
+          {items.map((item, idx) => (
+            <div key={item.id} style={{ display:"flex", alignItems:"center", gap:7, marginBottom:6 }}>
+              <span style={{ color:"#8b7355", fontSize:13, minWidth:12 }}>・</span>
+              <input className="tn" style={{ flex:1 }} placeholder={`項目 ${idx+1}`} value={item.text} onChange={e => update(item.id, e.target.value)} />
+              {items.length > 1 && <button className="bx" onClick={() => remove(item.id)}>×</button>}
+            </div>
+          ))}
+          <button className="bas" onClick={add}>＋ 追加</button>
+        </div>
+      );
+    }
+
+    function App() {
+      const today = new Date().toISOString().split("T")[0];
+      const [tab, setTab] = useState("report");
+      const [date, setDate] = useState(today);
+      const [author, setAuthor] = useState(() => load("dr_author", ""));
+      const [tasks, setTasks] = useState([newTask()]);
+      const [progress, setProgress] = useState("スケジュール通り");
+      const [issues, setIssues] = useState([newBullet()]);
+      const [nextDay, setNextDay] = useState([newBullet()]);
+      const [memo, setMemo] = useState("");
+      const [fixedTasks, setFixedTasks] = useState(() => load("dr_fixed", []));
+      const [templates, setTemplates] = useState(() => load("dr_templates", []));
+      const [newTemplate, setNewTemplate] = useState("");
+      const [savedMsg, setSavedMsg] = useState(false);
+      const [output, setOutput] = useState("");
+      const [copied, setCopied] = useState(false);
+
+      useEffect(() => { save("dr_fixed", fixedTasks); }, [fixedTasks]);
+      useEffect(() => { save("dr_templates", templates); }, [templates]);
+      useEffect(() => { save("dr_author", author); }, [author]);
+
+      const sumH = (list) => list.reduce((s,t) => s + (parseFloat(t.hours)||0), 0);
+      const allTasks = [...fixedTasks, ...tasks];
+      const grandTotal = sumH(allTasks);
+
+      const addTask = () => setTasks(p => [...p, newTask()]);
+      const removeTask = (id) => setTasks(p => p.filter(t => t.id !== id));
+      const updateTask = (id,f,v) => setTasks(p => p.map(t => t.id===id ? {...t,[f]:v} : t));
+      const addSub = (id) => setTasks(p => p.map(t => t.id===id ? {...t,subItems:[...t.subItems,""]} : t));
+      const updateSub = (id,i,v) => setTasks(p => p.map(t => t.id===id ? {...t,subItems:t.subItems.map((s,j)=>j===i?v:s)} : t));
+      const removeSub = (id,i) => setTasks(p => p.map(t => t.id===id ? {...t,subItems:t.subItems.filter((_,j)=>j!==i)} : t));
+
+      const addFixed = () => setFixedTasks(p => [...p, newFixed()]);
+      const removeFixed = (id) => setFixedTasks(p => p.filter(t => t.id !== id));
+      const updateFixed = (id,f,v) => setFixedTasks(p => p.map(t => t.id===id ? {...t,[f]:v} : t));
+      const addFixedSub = (id) => setFixedTasks(p => p.map(t => t.id===id ? {...t,subItems:[...t.subItems,""]} : t));
+      const updateFixedSub = (id,i,v) => setFixedTasks(p => p.map(t => t.id===id ? {...t,subItems:t.subItems.map((s,j)=>j===i?v:s)} : t));
+      const removeFixedSub = (id,i) => setFixedTasks(p => p.map(t => t.id===id ? {...t,subItems:t.subItems.filter((_,j)=>j!==i)} : t));
+
+      const addTemplate = () => { if (!newTemplate.trim()) return; setTemplates(p => [...p, newTemplate.trim()]); setNewTemplate(""); };
+      const removeTemplate = (i) => setTemplates(p => p.filter((_,j) => j!==i));
+      const applyTemplate = (name) => {
+        const empty = tasks.find(t => !t.name);
+        if (empty) updateTask(empty.id, "name", name);
+        else setTasks(p => [...p, {...newTask(), name}]);
+      };
+
+      const generate = () => {
+        const lines = [];
+        lines.push("--------------------------------------------");
+        lines.push(`　　　${formatDate(date)}の業務報告（${author||"氏名"}）`);
+        lines.push("--------------------------------------------");
+        lines.push(`■業務内容（合計 ${grandTotal}h）`);
+        allTasks.forEach(t => {
+          if (!t.name) return;
+          lines.push(`・${t.name}${t.hours?`（${t.hours}h）`:""}`);
+          t.subItems.forEach(s => { if (s.trim()) lines.push(`└${s}`); });
+        });
+        lines.push("");
+        lines.push("■業務進捗");
+        if (progress.trim()) lines.push(progress.trim());
+        lines.push("");
+        lines.push("■課題感・対策");
+        issues.forEach(i => { if (i.text.trim()) lines.push(`・${i.text.trim()}`); });
+        lines.push("");
+        lines.push("■次営業日の予定");
+        nextDay.forEach(i => { if (i.text.trim()) lines.push(`・${i.text.trim()}`); });
+        lines.push("");
+        lines.push("■ひとこと");
+        if (memo.trim()) lines.push(memo.trim());
+        setOutput(lines.join("\n"));
+      };
+
+      const copy = () => {
+        navigator.clipboard.writeText(output).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      };
+
+      return (
+        <div className="wrap">
+          <div className="hdr">
+            <div className="hdr-t">日報作成ツール</div>
+            <div className="hdr-s">Daily Report Generator</div>
+          </div>
+
+          <div className="tabs">
+            <button className={`tb ${tab==="report"?"on":""}`} onClick={() => setTab("report")}>📝　日報を書く</button>
+            <button className={`tb ${tab==="settings"?"on":""}`} onClick={() => setTab("settings")}>⚙️　固定・テンプレート設定</button>
+          </div>
+
+          {tab === "report" && <>
+            <div className="card">
+              <div className="sl">基本情報</div>
+              <div className="row">
+                <div className="field">
+                  <label>日付</label>
+                  <input type="date" value={date} onChange={e => setDate(e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>氏名</label>
+                  <input type="text" placeholder="例：渡邊" value={author} onChange={e => setAuthor(e.target.value)} />
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="sl">業務内容</div>
+              {fixedTasks.length > 0 && <>
+                <div className="fi">📌 固定業務 {fixedTasks.length}件 — 時間は当日分に調整できます</div>
+                {fixedTasks.map(t => (
+                  <div className="tb-block fx" key={t.id}>
+                    <span className="fx-badge">固定</span>
+                    <div className="tb-row">
+                      <input className="tn" value={t.name} onChange={e => updateFixed(t.id,"name",e.target.value)} placeholder="固定業務名" />
+                      <input className="th" type="number" step="0.25" min="0" value={t.hours} onChange={e => updateFixed(t.id,"hours",e.target.value)} placeholder="0" />
+                      <span className="hu">h</span>
+                    </div>
+                    {t.subItems.map((s,i) => (
+                      <div className="sr" key={i}>
+                        <span className="sp">└</span>
+                        <input className="si" value={s} onChange={e => updateFixedSub(t.id,i,e.target.value)} placeholder="補足" />
+                        {t.subItems.length > 1 && <button className="bx" onClick={() => removeFixedSub(t.id,i)}>×</button>}
+                      </div>
+                    ))}
+                    <button className="bas" onClick={() => addFixedSub(t.id)}>＋ 補足</button>
+                  </div>
+                ))}
+                <hr className="sep" />
+              </>}
+
+              {templates.length > 0 && <>
+                <div className="tia">
+                  <div className="til">TEMPLATES — クリックして追加</div>
+                  <div className="tcs">
+                    {templates.map((tpl,i) => (
+                      <button key={i} className="tcb" onClick={() => applyTemplate(tpl)}>{tpl}</button>
+                    ))}
+                  </div>
+                </div>
+                <hr className="sep" />
+              </>}
+
+              {tasks.map((t, idx) => (
+                <div className="tb-block" key={t.id}>
+                  <span className="tb-num">TASK {String(idx+1).padStart(2,"0")}</span>
+                  {tasks.length > 1 && <button className="del" onClick={() => removeTask(t.id)}>×</button>}
+                  <div className="tb-row">
+                    <input className="tn" placeholder="業務名" value={t.name} onChange={e => updateTask(t.id,"name",e.target.value)} />
+                    <input className="th" type="number" step="0.25" min="0" placeholder="0" value={t.hours} onChange={e => updateTask(t.id,"hours",e.target.value)} />
+                    <span className="hu">h</span>
+                  </div>
+                  {t.subItems.map((s,i) => (
+                    <div className="sr" key={i}>
+                      <span className="sp">└</span>
+                      <input className="si" placeholder="補足・詳細（任意）" value={s} onChange={e => updateSub(t.id,i,e.target.value)} />
+                      {t.subItems.length > 1 && <button className="bx" onClick={() => removeSub(t.id,i)}>×</button>}
+                    </div>
+                  ))}
+                  <button className="bas" onClick={() => addSub(t.id)}>＋ 補足を追加</button>
+                </div>
+              ))}
+              <button className="bat" onClick={addTask}>＋ 業務を追加</button>
+              <div className="tot">
+                <span className="tl">合計</span>
+                <span className="tv">{grandTotal}h</span>
+                {fixedTasks.length > 0 && <span className="ft">（固定 {sumH(fixedTasks)}h 含む）</span>}
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="sl">業務進捗</div>
+              <input type="text" placeholder="例：スケジュール通り" value={progress} onChange={e => setProgress(e.target.value)} />
+            </div>
+
+            <div className="card">
+              <div className="sl">課題感・対策</div>
+              <BulletList items={issues} onChange={setIssues} />
+            </div>
+
+            <div className="card">
+              <div className="sl">次営業日の予定</div>
+              <BulletList items={nextDay} onChange={setNextDay} />
+            </div>
+
+            <div className="card">
+              <div className="sl">ひとこと</div>
+              <textarea rows={4} placeholder="自由記述（改行そのまま出力されます）" value={memo} onChange={e => setMemo(e.target.value)} />
+            </div>
+
+            <button className="bgen" onClick={generate}>日報を生成する</button>
+
+            {output && (
+              <div className="oc">
+                <div className="ol">出力プレビュー</div>
+                <button className={`bcp ${copied?"ok":""}`} onClick={copy}>{copied?"コピー済 ✓":"コピー"}</button>
+                <div className="ot">{output}</div>
+              </div>
+            )}
+          </>}
+
+          {tab === "settings" && <>
+            <div className="card">
+              <div className="sl">固定業務の登録</div>
+              <div className="fi">ここで登録した業務は毎日の日報に自動で表示されます。時間は「日報を書く」タブで当日分に調整できます。</div>
+              {fixedTasks.map((t, idx) => (
+                <div className="tb-block fx" key={t.id}>
+                  <span className="fx-badge">固定 {idx+1}</span>
+                  <button className="del" onClick={() => removeFixed(t.id)}>×</button>
+                  <div className="tb-row">
+                    <input className="tn" placeholder="例：朝会・日報作成" value={t.name} onChange={e => updateFixed(t.id,"name",e.target.value)} />
+                    <input className="th" type="number" step="0.25" min="0" placeholder="0" value={t.hours} onChange={e => updateFixed(t.id,"hours",e.target.value)} />
+                    <span className="hu">h</span>
+                  </div>
+                  {t.subItems.map((s,i) => (
+                    <div className="sr" key={i}>
+                      <span className="sp">└</span>
+                      <input className="si" placeholder="補足（任意）" value={s} onChange={e => updateFixedSub(t.id,i,e.target.value)} />
+                      {t.subItems.length > 1 && <button className="bx" onClick={() => removeFixedSub(t.id,i)}>×</button>}
+                    </div>
+                  ))}
+                  <button className="bas" onClick={() => addFixedSub(t.id)}>＋ 補足</button>
+                </div>
+              ))}
+              <button className="bat" onClick={addFixed}>＋ 固定業務を追加</button>
+            </div>
+
+            <div className="card">
+              <div className="sl">テンプレートの登録</div>
+              <div className="fi">よく使う業務名を登録しておくと、「日報を書く」タブでワンクリックで入力できます。</div>
+              {templates.map((tpl,i) => (
+                <div className="tr-row" key={i}>
+                  <div className="tc">{tpl}</div>
+                  <button className="bx" onClick={() => removeTemplate(i)}>×</button>
+                </div>
+              ))}
+              <div className="tai">
+                <input className="tain" placeholder="業務名を入力（Enterでも追加）" value={newTemplate} onChange={e => setNewTemplate(e.target.value)} onKeyDown={e => e.key==="Enter" && addTemplate()} />
+                <button className="btad" onClick={addTemplate}>追加</button>
+              </div>
+            </div>
+
+            <div style={{ display:"flex", alignItems:"center" }}>
+              <button className="bsave" onClick={() => { setSavedMsg(true); setTimeout(()=>setSavedMsg(false),2200); }}>設定を保存する</button>
+              {savedMsg && <span className="sm">✓ 保存しました</span>}
+            </div>
+          </>}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
